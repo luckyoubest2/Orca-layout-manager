@@ -1,0 +1,43 @@
+# Orca Layout Manager
+
+增强 Orca Note 官方布局功能的插件：把「布局」做成侧边栏的原生标签，像「标签」「页面」
+一样在左侧常驻栏直接管理布局。
+
+## 功能
+
+- 在主页左侧常驻栏（`nav#sidebar`）的标签行（收藏 / 标签 / 页面）右侧，新增一个
+  原生样式的「布局」标签。
+- 点击「布局」标签，侧边栏内容区显示布局管理器（与官方顶栏「… → Layouts（布局）」
+  菜单完全共用同一份数据）：
+  - 输入名称保存当前面板布局为新布局（重名时确认覆盖，空名与 `_` 前缀被拒绝）；
+  - 列出全部已保存布局：点击名称直接应用，行内提供「应用 / 更新 / 设为默认 / 删除」；
+  - 一键应用内置默认布局。
+- 数据读写 `orca.state.settings[1002]`，与官方菜单双向同步；官方入口保持不变。
+
+## 使用
+
+1. `pnpm install && pnpm build`，产物在 `dist/index.js`。
+2. 将项目文件夹放入 Orca Note 的 `plugins` 目录（例如
+   `C:\Users\<you>\Documents\orca\plugins\orca-layout-manager`）。
+3. 重启 Orca Note，在设置中启用插件。
+4. 点击侧边栏标签行右侧的「布局」标签开始管理。
+
+## 实现说明
+
+- 侧边栏标签通过 DOM 注入实现（官方 API 不提供侧边栏标签扩展接口）：向
+  `.orca-sidebar-tab-options`（原生 Segmented）末尾追加第 4 个 `.orca-segmented-item`，
+  外观与收藏/标签/页面完全一致；通过订阅 `orca.state.sidebarTab` 维护选中态。
+- 布局列表注入到标签内容区 `.orca-sidebar-tabs` 内，仅当 `sidebarTab` 为「布局」时显示；
+  官方对未知标签会隐藏全部原生视图，正好留出内容空间。
+- 侧边栏重渲染导致注入节点丢失时，由 MutationObserver 自动恢复（不移动任何
+  React 管理的节点）。
+- 布局的保存/应用/删除/设默认与官方实现逻辑一致：读写 `orca.state.settings[1002]`，
+  按需注册 `core.layout.<name>` 命令，通过 `set-config` 持久化并广播
+  `orca.refresh-settings`。
+- 卸载插件时仅移除注入的标签、列表与样式，不删除已保存布局。
+
+## 开发
+
+- `pnpm install` — 安装依赖
+- `pnpm build` — 类型检查并构建到 `dist/index.js`
+- `pnpm dev` — Vite 开发模式
