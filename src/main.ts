@@ -2,7 +2,7 @@ import { setupL10N, t } from "./libs/l10n"
 import zhCN from "./translations/zhCN"
 import {
   JOURNAL_TO_TODAY_SETTING,
-  REPLACE_GO_TODAY_SETTING,
+  SHOW_GO_DEFAULT_SETTING,
   SHOW_CREATE_LAYOUT_SETTING,
   SHOW_LAYOUT_ACTIONS_SETTING,
 } from "./constants"
@@ -49,12 +49,10 @@ export async function load(name: string) {
       type: "boolean",
       defaultValue: true,
     },
-    [REPLACE_GO_TODAY_SETTING]: {
-      label: t(
-        'Replace "Go to today\'s journal" with "Go to the default layout"',
-      ),
+    [SHOW_GO_DEFAULT_SETTING]: {
+      label: t("Show a quick button to go to the default layout"),
       description: t(
-        "Replace the headbar home button so it applies the default layout. It falls back to today's journal when no default layout is set.",
+        "Add a headbar button that applies the default layout. It falls back to today's journal when no default layout is set.",
       ),
       type: "boolean",
       defaultValue: true,

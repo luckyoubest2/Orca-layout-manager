@@ -1,59 +1,44 @@
+import { t } from "./libs/l10n"
 import { applyDefaultLayout } from "./layoutOps"
-import { REPLACE_GO_TODAY_SETTING } from "./constants"
+import { SHOW_GO_DEFAULT_SETTING } from "./constants"
 
-const HOME_ICON_CLASS = "ti-home"
-const DEFAULT_ICON_CLASS = "ti-layout-filled"
-const HOME_BUTTON_SELECTOR =
-  ".orca-headbar-global-tools i.ti-home.orca-headbar-icon"
-
-// 工具提示文案替换：前往今日日志 → 前往默认布局
-const TOOLTIP_REWRITES: Record<string, string> = {
-  "Go to today's journal": "Go to the default layout",
-  "前往今日日志": "前往默认布局",
-}
+const BUTTON_CLASS = "orca-lm-go-default-btn"
 
 let settingsPluginName = ""
 let injected = false
 let observer: MutationObserver | null = null
 let unsubscribe: (() => void) | null = null
 let button: HTMLButtonElement | null = null
-let clickHandler: ((e: Event) => void) | null = null
 
 export function setHeadbarPluginName(name: string): void {
   settingsPluginName = name
 }
 
-function goDefaultEnabled(): boolean {
+function showGoDefaultButton(): boolean {
   return (
     orca.state.plugins[settingsPluginName]?.settings?.[
-      REPLACE_GO_TODAY_SETTING
+      SHOW_GO_DEFAULT_SETTING
     ] !== false
   )
 }
 
-// 把顶栏「前往今日日志」按钮替换为「前往默认布局」：
-// - 更换图标（ti-home → ti-layout-filled）；
-// - 用捕获阶段的点击监听拦截原生事件，阻止 React 原有 onClick 触发，
-//   改为应用默认布局；
-// - 悬停时把 Tooltip 文案改为「前往默认布局」。
+// 在顶栏全局工具区新增一个独立的「前往默认布局」按钮（不替换官方按钮）。
+// 按钮放在「前往今日日志」旁边，点击应用默认布局；未设置默认布局时回退到今日日志。
 export function injectGoDefaultButton(): void {
   injected = true
   ensureApplied()
-  rewriteTooltip()
 
   if (observer == null) {
-    observer = new MutationObserver(() => {
-      ensureApplied()
-      rewriteTooltip()
-    })
+    // 顶栏重渲染可能移除按钮，自动恢复
+    observer = new MutationObserver(() => ensureApplied())
     observer.observe(document.body, { childList: true, subtree: true })
   }
 
   if (unsubscribe == null) {
-    // 设置面板切换开关时立即生效（恢复或重新替换按钮）
+    // 设置面板切换开关时立即显示/隐藏
     unsubscribe = window.Valtio.subscribe(orca.state, () => {
-      if (goDefaultEnabled()) ensureApplied()
-      else resetButton()
+      if (showGoDefaultButton()) ensureApplied()
+      else removeButton()
     })
   }
 }
@@ -68,73 +53,43 @@ export function removeGoDefaultButton(): void {
     unsubscribe()
     unsubscribe = null
   }
-  resetButton()
+  removeButton()
 }
 
 function ensureApplied(): void {
-  if (!injected || !goDefaultEnabled()) return
-  const btn = findHomeButton()
-  if (btn == null || btn === button) return
+  if (!injected || !showGoDefaultButton()) return
+  if (button != null && button.isConnected) return
 
-  resetButton()
-  const icon = btn.querySelector<HTMLElement>("i.ti-home")
-  if (icon != null) {
-    icon.classList.remove(HOME_ICON_CLASS)
-    icon.classList.add(DEFAULT_ICON_CLASS)
-  }
-  const handler = (e: Event) => {
+  const tools = document.querySelector<HTMLElement>(".orca-headbar-global-tools")
+  if (tools == null) return
+
+  const btn = document.createElement("button")
+  btn.type = "button"
+  btn.className = `orca-button plain ${BUTTON_CLASS}`
+  btn.title = t("Go to the default layout")
+  btn.setAttribute("aria-label", t("Go to the default layout"))
+  const icon = document.createElement("i")
+  icon.className = "ti ti-layout-filled orca-headbar-icon"
+  btn.appendChild(icon)
+  btn.addEventListener("click", (e) => {
     e.preventDefault()
     e.stopPropagation()
     void applyDefaultLayout()
-  }
-  btn.addEventListener("click", handler, true)
+  })
+  btn.addEventListener("mousedown", (e) => e.stopPropagation())
+
+  // 优先放在「前往今日日志」按钮旁边，找不到时追加到工具区末尾
+  const homeIcon = tools.querySelector<HTMLElement>("i.ti-home.orca-headbar-icon")
+  const homeBtn = homeIcon?.closest("button")
+  if (homeBtn != null) homeBtn.after(btn)
+  else tools.appendChild(btn)
+
   button = btn
-  clickHandler = handler
 }
 
-function resetButton(): void {
-  if (button == null) return
-  if (clickHandler != null) {
-    button.removeEventListener("click", clickHandler, true)
-    clickHandler = null
-  }
-  const icon = button.querySelector<HTMLElement>("i")
-  if (icon != null) {
-    icon.classList.add(HOME_ICON_CLASS)
-    icon.classList.remove(DEFAULT_ICON_CLASS)
-  }
-  button = null
-}
-
-function findHomeButton(): HTMLButtonElement | null {
-  const icon = document.querySelector<HTMLElement>(HOME_BUTTON_SELECTOR)
-  return (icon?.closest("button") as HTMLButtonElement | null) ?? null
-}
-
-function rewriteTooltip(): void {
-  if (!injected) return
-  for (const el of document.querySelectorAll<HTMLElement>(".orca-tooltip")) {
-    const current = tooltipText(el)
-    const target = TOOLTIP_REWRITES[current]
-    if (target != null) setTooltipText(el, target)
-  }
-}
-
-function tooltipText(el: HTMLElement): string {
-  const shortcut = el.querySelector(".orca-tooltip-shortcut")
-  if (shortcut != null) {
-    const textEl = el.firstElementChild
-    return textEl != null ? (textEl.textContent ?? "").trim() : ""
-  }
-  return (el.textContent ?? "").trim()
-}
-
-function setTooltipText(el: HTMLElement, text: string): void {
-  const shortcut = el.querySelector(".orca-tooltip-shortcut")
-  if (shortcut != null) {
-    const textEl = el.firstElementChild
-    if (textEl != null && textEl !== shortcut) textEl.textContent = text
-  } else {
-    el.textContent = text
+function removeButton(): void {
+  if (button != null) {
+    button.remove()
+    button = null
   }
 }
