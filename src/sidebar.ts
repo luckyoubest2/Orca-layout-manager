@@ -322,12 +322,6 @@ function buildLayoutRow(name: string, isDefault: boolean): HTMLElement {
   nameText.className = "orca-lm-layout-name-text"
   nameText.textContent = name
   nameBox.appendChild(nameText)
-  if (isDefault) {
-    const badge = document.createElement("span")
-    badge.className = "orca-lm-badge"
-    badge.textContent = t("(default)")
-    nameBox.appendChild(badge)
-  }
 
   // 点击名称直接应用该布局（与「标签/页面」点击切换的行为一致）
   nameBox.addEventListener("click", (e) => {
@@ -369,9 +363,12 @@ function buildLayoutRow(name: string, isDefault: boolean): HTMLElement {
           confirmingUpdate = name
           refreshList()
         }),
-        makeButton("ti ti-star", t("Make default"), () => void doMakeDefault(name), {
-          disabled: isDefault,
-        }),
+        makeButton(
+          isDefault ? "ti ti-star-filled" : "ti ti-star",
+          t("Make default"),
+          () => void doMakeDefault(name),
+          { disabled: isDefault },
+        ),
         makeButton("ti ti-trash", t("Delete layout"), () => void doDelete(name), {
           danger: true,
         }),
@@ -381,6 +378,16 @@ function buildLayoutRow(name: string, isDefault: boolean): HTMLElement {
     row.append(nameBox, actions)
   } else {
     row.appendChild(nameBox)
+  }
+
+  // 行按钮隐藏时，默认布局在行尾显示实心星星；
+  // 行按钮显示时由「设为默认」按钮（实心星）承担指示，避免重复。
+  if (isDefault && !showLayoutActions()) {
+    const star = document.createElement("i")
+    star.className = "ti ti-star-filled orca-lm-default-star"
+    star.title = t("(default)")
+    star.setAttribute("aria-label", t("(default)"))
+    row.appendChild(star)
   }
   return row
 }

@@ -176,19 +176,17 @@ function injectStyles() {
       text-overflow: ellipsis;
       white-space: nowrap;
     }
-    .orca-lm-badge {
-      padding: 1px 6px;
-      border-radius: var(--orca-radius-sm);
-      background: var(--orca-color-primary-5);
-      color: var(--orca-color-white);
-      font-size: 11px;
-      flex-shrink: 0;
-    }
     .orca-lm-row-actions {
       display: flex;
       align-items: center;
       gap: 2px;
       flex-shrink: 0;
+    }
+    /* 行尾的默认布局实心星星 */
+    .orca-lm-default-star {
+      flex-shrink: 0;
+      color: var(--orca-color-text-yellow);
+      font-size: var(--orca-fontsize-md);
     }
     .orca-lm-btn {
       display: inline-flex;
