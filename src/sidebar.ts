@@ -1,6 +1,5 @@
 import { t } from "./libs/l10n"
 import {
-  applyDefaultLayout,
   applyLayoutByName,
   deleteLayout,
   getLayoutsData,
@@ -251,31 +250,11 @@ function buildSkeleton(): void {
   overwriteRow.className = "orca-lm-overwrite-row"
   overwriteRowEl = overwriteRow
 
-  const actionsRow = document.createElement("div")
-  actionsRow.className = "orca-lm-actions-row"
-  actionsRow.appendChild(
-    makeTextButton(t("Apply the default layout"), () => void doApplyDefault()),
-  )
-
-  const divider = document.createElement("div")
-  divider.className = "orca-lm-divider"
-
-  const subtitle = document.createElement("div")
-  subtitle.className = "orca-lm-subtitle"
-  subtitle.textContent = t("Saved layouts")
-
   const list = document.createElement("div")
   list.className = "orca-lm-list"
   listEl = list
 
-  contentContainer.append(
-    saveRow,
-    overwriteRow,
-    actionsRow,
-    divider,
-    subtitle,
-    list,
-  )
+  contentContainer.append(saveRow, overwriteRow, list)
   refreshOverwriteRow()
 }
 
@@ -319,7 +298,9 @@ function refreshList(): void {
   if (names.length === 0) {
     const empty = document.createElement("div")
     empty.className = "orca-lm-empty"
-    empty.textContent = t("No layouts yet. Save the current layout to get started.")
+    empty.textContent = t(
+      "No layouts yet. Enable the save-new-layout entry in settings to save the current layout.",
+    )
     listEl.replaceChildren(empty)
     return
   }
@@ -521,19 +502,5 @@ async function doDelete(name: string): Promise<void> {
   } catch (err) {
     console.error("[orca-layout-manager] deleteLayout failed", err)
     notify("error", t("Failed to delete the layout"))
-  }
-}
-
-async function doApplyDefault(): Promise<void> {
-  try {
-    const ok = await applyDefaultLayout()
-    if (!ok) {
-      notify("error", t("Failed to apply the default layout"))
-      return
-    }
-    notify("success", t("Layout applied"))
-  } catch (err) {
-    console.error("[orca-layout-manager] applyDefaultLayout failed", err)
-    notify("error", t("Failed to apply the default layout"))
   }
 }

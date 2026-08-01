@@ -39,7 +39,7 @@ export async function load(name: string) {
         "Show the create/save layout input at the top of the layout tab. Turn it off to collapse this entry.",
       ),
       type: "boolean",
-      defaultValue: true,
+      defaultValue: false,
     },
     [SHOW_LAYOUT_ACTIONS_SETTING]: {
       label: t("Show layout row actions"),
@@ -47,7 +47,7 @@ export async function load(name: string) {
         "Show the save/default/delete buttons on each saved layout row. Turn it off to collapse these buttons; clicking the layout name still applies it.",
       ),
       type: "boolean",
-      defaultValue: true,
+      defaultValue: false,
     },
     [SHOW_GO_DEFAULT_SETTING]: {
       label: t("Show a quick button to go to the default layout"),
@@ -98,8 +98,10 @@ function injectStyles() {
       min-height: 0;
       display: flex;
       flex-direction: column;
-      gap: 8px;
-      padding: var(--orca-spacing-lg) var(--orca-spacing-md);
+      gap: var(--orca-spacing-sm);
+      /* 行高亮宽度与上方「收藏/标签/页面」标签栏一致 */
+      margin: 0;
+      padding: 0;
       box-sizing: border-box;
       overflow-y: auto;
       font-family: var(--orca-fontfamily-ui);
@@ -111,6 +113,7 @@ function injectStyles() {
       display: flex;
       gap: 6px;
       align-items: center;
+      padding: 0 var(--orca-spacing-xl);
     }
     .orca-lm-input {
       flex: 1;
@@ -131,39 +134,31 @@ function injectStyles() {
       align-items: center;
       gap: 6px;
       flex-wrap: wrap;
-      padding: 6px 8px;
+      padding: 6px var(--orca-spacing-xl);
       border-radius: var(--orca-radius-md);
       background: var(--orca-color-gray-1);
       color: var(--orca-color-text-2);
       font-size: var(--orca-fontsize-2xs);
     }
-    .orca-lm-actions-row {
-      display: flex;
-    }
-    .orca-lm-divider {
-      height: 1px;
-      background: var(--orca-color-border);
-    }
-    .orca-lm-subtitle {
-      font-weight: 600;
-      font-size: var(--orca-fontsize-sm);
-    }
     .orca-lm-empty {
       color: var(--orca-color-text-2);
       font-size: var(--orca-fontsize-sm);
-      padding: 4px 0;
+      padding: var(--orca-spacing-sm) var(--orca-spacing-xl);
     }
     .orca-lm-list {
       display: flex;
       flex-direction: column;
-      gap: 2px;
+      gap: 0;
+      /* 布局行没有图标/标签列，不再预留图标列缩进 */
+      padding: 0;
     }
     .orca-lm-layout-row {
       display: flex;
       align-items: center;
       gap: 4px;
-      padding: 5px 6px;
-      border-radius: var(--orca-radius-md);
+      /* 行背景铺满左右，文字缩进由行自身内边距提供 */
+      padding: var(--orca-spacing-xs) var(--orca-spacing-xl);
+      border-radius: var(--orca-radius-sm);
       cursor: pointer;
     }
     .orca-lm-layout-row:hover {
