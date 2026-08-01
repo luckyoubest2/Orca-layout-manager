@@ -207,8 +207,16 @@ export function applyLayoutByName(name: string): boolean {
   return applyLayout(saved)
 }
 
-// 应用内置默认布局：调用官方 core.layout._default 命令（应用启动时必然注册）。
+// 应用默认布局：
+// - 若用户通过「设为默认」指定了某个布局，则应用该布局；
+// - 否则回退到官方内置默认布局（core.layout._default，即今日日志单屏）。
 export async function applyDefaultLayout(): Promise<boolean> {
+  const data = getLayoutsData()
+  const defaultName = data.default
+  if (defaultName !== "" && data.layouts[defaultName] != null) {
+    return applyLayoutByName(defaultName)
+  }
+
   const commandId = "core.layout._default"
   if (orca.state.commands[commandId] == null) return false
   await orca.commands.invokeCommand(commandId)
