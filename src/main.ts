@@ -1,10 +1,15 @@
 import { setupL10N, t } from "./libs/l10n"
 import zhCN from "./translations/zhCN"
-import { JOURNAL_TO_TODAY_SETTING } from "./constants"
+import {
+  JOURNAL_TO_TODAY_SETTING,
+  SHOW_CREATE_LAYOUT_SETTING,
+  SHOW_LAYOUT_ACTIONS_SETTING,
+} from "./constants"
 import { setSettingsPluginName } from "./layoutOps"
 import {
   injectSidebarLayoutTab,
   removeSidebarLayoutTab,
+  setSidebarPluginName,
 } from "./sidebar"
 
 let pluginName = ""
@@ -22,8 +27,25 @@ export async function load(name: string) {
       type: "boolean",
       defaultValue: true,
     },
+    [SHOW_CREATE_LAYOUT_SETTING]: {
+      label: t("Show the save-new-layout entry"),
+      description: t(
+        "Show the create/save layout input at the top of the layout tab. Turn it off to collapse this entry.",
+      ),
+      type: "boolean",
+      defaultValue: true,
+    },
+    [SHOW_LAYOUT_ACTIONS_SETTING]: {
+      label: t("Show layout row actions"),
+      description: t(
+        "Show the save/default/delete buttons on each saved layout row. Turn it off to collapse these buttons; clicking the layout name still applies it.",
+      ),
+      type: "boolean",
+      defaultValue: true,
+    },
   })
   setSettingsPluginName(pluginName)
+  setSidebarPluginName(pluginName)
 
   injectStyles()
   injectSidebarLayoutTab()
@@ -35,6 +57,7 @@ export async function unload() {
   removeSidebarLayoutTab()
   removeStyles()
   setSettingsPluginName("")
+  setSidebarPluginName("")
 
   console.log(`${pluginName} unloaded.`)
 }

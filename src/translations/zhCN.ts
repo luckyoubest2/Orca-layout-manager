@@ -34,6 +34,12 @@ const zhCN = {
   "Open layouts with today's journal": "打开布局时默认使用今日日志",
   "When a saved layout contains journal panels, applying it replaces the journal date with today. The saved layout data itself is not modified.":
     "布局中包含日志面板时，应用该布局会把日志日期替换为今日（不会修改已保存的布局数据）。",
+  "Show the save-new-layout entry": "显示保存新布局入口",
+  "Show the create/save layout input at the top of the layout tab. Turn it off to collapse this entry.":
+    "显示布局标签顶部的创建/保存布局输入框；关闭后折叠该入口。",
+  "Show layout row actions": "显示布局行操作按钮",
+  "Show the save/default/delete buttons on each saved layout row. Turn it off to collapse these buttons; clicking the layout name still applies it.":
+    "显示每个已保存布局行的保存/默认/删除按钮；关闭后折叠这些按钮，点击布局名称仍可应用。",
 }
 
 export default zhCN

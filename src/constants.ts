@@ -5,3 +5,9 @@ export const REFRESH_SETTINGS_BROADCAST = "orca.refresh-settings"
 
 // 插件设置键：应用布局时是否把日志面板日期改为今日
 export const JOURNAL_TO_TODAY_SETTING = "journalToTodayOnApply"
+
+// 插件设置键：是否显示「保存新布局」入口（创建布局命令）
+export const SHOW_CREATE_LAYOUT_SETTING = "showCreateLayout"
+
+// 插件设置键：是否显示每个布局行的 保存/默认/删除 操作按钮
+export const SHOW_LAYOUT_ACTIONS_SETTING = "showLayoutActions"

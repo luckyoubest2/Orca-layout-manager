@@ -8,6 +8,10 @@ import {
   saveLayout,
   updateLayout,
 } from "./layoutOps"
+import {
+  SHOW_CREATE_LAYOUT_SETTING,
+  SHOW_LAYOUT_ACTIONS_SETTING,
+} from "./constants"
 
 // 侧边栏标签的值：与官方收藏/标签/页面平级
 export const LAYOUT_TAB_KEY = "layoutManager"
@@ -18,6 +22,7 @@ const CONTENT_CLASS = "orca-lm-sidebar-content"
 let injected = false
 let observer: MutationObserver | null = null
 let unsubscribe: (() => void) | null = null
+let settingsPluginName = ""
 
 let tabItem: HTMLElement | null = null
 let contentContainer: HTMLElement | null = null
@@ -33,6 +38,7 @@ let lastSignature = ""
 // 稳定的子元素引用（避免外部刷新时重建输入框导致失焦）
 let inputEl: HTMLInputElement | null = null
 let saveBtnEl: HTMLButtonElement | null = null
+let saveRowEl: HTMLElement | null = null
 let overwriteRowEl: HTMLElement | null = null
 let listEl: HTMLElement | null = null
 
@@ -40,6 +46,26 @@ type NotifyType = "info" | "success" | "warn" | "error"
 
 function notify(type: NotifyType, message: string): void {
   orca.notify(type, message, { title: t("Layout Manager") })
+}
+
+export function setSidebarPluginName(name: string): void {
+  settingsPluginName = name
+}
+
+function showCreateLayout(): boolean {
+  return (
+    orca.state.plugins[settingsPluginName]?.settings?.[
+      SHOW_CREATE_LAYOUT_SETTING
+    ] !== false
+  )
+}
+
+function showLayoutActions(): boolean {
+  return (
+    orca.state.plugins[settingsPluginName]?.settings?.[
+      SHOW_LAYOUT_ACTIONS_SETTING
+    ] !== false
+  )
 }
 
 // ---------- 入口 / 清理 ----------
@@ -83,6 +109,7 @@ export function removeSidebarLayoutTab(): void {
   document.querySelector("nav#sidebar")?.classList.remove("orca-lm-active")
   inputEl = null
   saveBtnEl = null
+  saveRowEl = null
   overwriteRowEl = null
   listEl = null
 }
@@ -159,7 +186,7 @@ function ensureContent(): void {
 
 function layoutsSignature(): string {
   const data = getLayoutsData()
-  return `${data.default}|${Object.keys(data.layouts).sort().join(",")}`
+  return `${showCreateLayout()}|${showLayoutActions()}|${data.default}|${Object.keys(data.layouts).sort().join(",")}`
 }
 
 function refreshAll(): void {
@@ -218,6 +245,7 @@ function buildSkeleton(): void {
   saveBtnEl = saveBtn
 
   saveRow.append(input, saveBtn)
+  saveRowEl = saveRow
 
   const overwriteRow = document.createElement("div")
   overwriteRow.className = "orca-lm-overwrite-row"
@@ -252,6 +280,9 @@ function buildSkeleton(): void {
 }
 
 function refreshControls(): void {
+  if (saveRowEl != null) {
+    saveRowEl.style.display = showCreateLayout() ? "flex" : "none"
+  }
   if (inputEl != null) {
     if (document.activeElement !== inputEl) inputEl.value = newName
     inputEl.disabled = busy
@@ -317,55 +348,59 @@ function buildLayoutRow(name: string, isDefault: boolean): HTMLElement {
     nameBox.appendChild(badge)
   }
 
-  const actions = document.createElement("div")
-  actions.className = "orca-lm-row-actions"
-
-  if (confirmingDelete === name) {
-    const hint = document.createElement("span")
-    hint.className = "orca-lm-overwrite-hint"
-    hint.textContent = t('Delete the layout "${name}"?', { name })
-    const ok = makeButton("ti ti-check", t("Confirm"), () => void doDelete(name))
-    const cancel = makeButton("ti ti-x", t("Cancel"), () => {
-      confirmingDelete = null
-      refreshList()
-    })
-    actions.append(hint, ok, cancel)
-  } else if (confirmingUpdate === name) {
-    const hint = document.createElement("span")
-    hint.className = "orca-lm-overwrite-hint"
-    hint.textContent = t('Overwrite the layout "${name}"?', { name })
-    const ok = makeButton("ti ti-check", t("Confirm"), () => {
-      confirmingUpdate = null
-      refreshList()
-      void doUpdate(name)
-    })
-    const cancel = makeButton("ti ti-x", t("Cancel"), () => {
-      confirmingUpdate = null
-      refreshList()
-    })
-    actions.append(hint, ok, cancel)
-  } else {
-    actions.append(
-      makeButton("ti ti-device-floppy", t("Update layout"), () => {
-        confirmingUpdate = name
-        refreshList()
-      }),
-      makeButton("ti ti-star", t("Make default"), () => void doMakeDefault(name), {
-        disabled: isDefault,
-      }),
-      makeButton("ti ti-trash", t("Delete layout"), () => void doDelete(name), {
-        danger: true,
-      }),
-    )
-  }
-
   // 点击名称直接应用该布局（与「标签/页面」点击切换的行为一致）
   nameBox.addEventListener("click", (e) => {
     e.stopPropagation()
     void doApply(name)
   })
 
-  row.append(nameBox, actions)
+  if (showLayoutActions()) {
+    const actions = document.createElement("div")
+    actions.className = "orca-lm-row-actions"
+
+    if (confirmingDelete === name) {
+      const hint = document.createElement("span")
+      hint.className = "orca-lm-overwrite-hint"
+      hint.textContent = t('Delete the layout "${name}"?', { name })
+      const ok = makeButton("ti ti-check", t("Confirm"), () => void doDelete(name))
+      const cancel = makeButton("ti ti-x", t("Cancel"), () => {
+        confirmingDelete = null
+        refreshList()
+      })
+      actions.append(hint, ok, cancel)
+    } else if (confirmingUpdate === name) {
+      const hint = document.createElement("span")
+      hint.className = "orca-lm-overwrite-hint"
+      hint.textContent = t('Overwrite the layout "${name}"?', { name })
+      const ok = makeButton("ti ti-check", t("Confirm"), () => {
+        confirmingUpdate = null
+        refreshList()
+        void doUpdate(name)
+      })
+      const cancel = makeButton("ti ti-x", t("Cancel"), () => {
+        confirmingUpdate = null
+        refreshList()
+      })
+      actions.append(hint, ok, cancel)
+    } else {
+      actions.append(
+        makeButton("ti ti-device-floppy", t("Update layout"), () => {
+          confirmingUpdate = name
+          refreshList()
+        }),
+        makeButton("ti ti-star", t("Make default"), () => void doMakeDefault(name), {
+          disabled: isDefault,
+        }),
+        makeButton("ti ti-trash", t("Delete layout"), () => void doDelete(name), {
+          danger: true,
+        }),
+      )
+    }
+
+    row.append(nameBox, actions)
+  } else {
+    row.appendChild(nameBox)
+  }
   return row
 }
 
