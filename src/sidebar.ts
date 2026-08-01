@@ -322,11 +322,9 @@ function buildLayoutRow(name: string, isDefault: boolean): HTMLElement {
 
   if (confirmingDelete === name) {
     const hint = document.createElement("span")
-    hint.className = "orca-lm-delete-hint"
-    hint.textContent = t("Delete this layout? This cannot be undone!")
-    const ok = makeButton("ti ti-check", t("Confirm"), () => void doDelete(name), {
-      danger: true,
-    })
+    hint.className = "orca-lm-overwrite-hint"
+    hint.textContent = t('Delete the layout "${name}"?', { name })
+    const ok = makeButton("ti ti-check", t("Confirm"), () => void doDelete(name))
     const cancel = makeButton("ti ti-x", t("Cancel"), () => {
       confirmingDelete = null
       refreshList()

@@ -202,10 +202,6 @@ function injectStyles() {
       height: 22px;
       font-size: var(--orca-fontsize-xs);
     }
-    .orca-lm-delete-hint {
-      color: var(--orca-color-dangerous-5);
-      font-size: var(--orca-fontsize-2xs);
-    }
     .orca-lm-overwrite-hint {
       color: var(--orca-color-text-2);
       font-size: var(--orca-fontsize-2xs);

@@ -11,8 +11,7 @@ const zhCN = {
   "Update layout": "更新布局",
   "Make default": "设为默认",
   "Delete layout": "删除布局",
-  "Delete this layout? This cannot be undone!":
-    "删除这个布局吗？该操作不能被撤销！",
+  "Delete the layout \"${name}\"?": "删除布局“${name}”？",
   "Overwrite the layout \"${name}\"?": "覆盖保存布局“${name}”？",
   "A layout with this name already exists, do you want to replace it?":
     "已存在同名布局，是否覆盖？",
