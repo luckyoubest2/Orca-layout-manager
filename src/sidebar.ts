@@ -333,7 +333,6 @@ function buildLayoutRow(name: string, isDefault: boolean): HTMLElement {
     actions.append(hint, ok, cancel)
   } else {
     actions.append(
-      makeButton("ti ti-check", t("Apply"), () => void doApply(name)),
       makeButton("ti ti-device-floppy", t("Update layout"), () =>
         void doUpdate(name),
       ),

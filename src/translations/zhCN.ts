@@ -6,7 +6,6 @@ const zhCN = {
   "New layout name": "新布局名称",
   "Save the current panel layout and editors for quick opening next time":
     "保存当前面板布局和编辑器，以便下次快速打开",
-  "Apply": "应用",
   "Apply the default layout": "应用默认布局",
   "Apply the layout \"${name}\"": "应用布局“${name}”",
   "Update layout": "更新布局",
