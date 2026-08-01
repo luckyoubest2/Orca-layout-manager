@@ -1,6 +1,17 @@
 import { t } from "./libs/l10n"
 import type { ColumnPanel, RowPanel, ViewPanel } from "./orca.d.ts"
-import { PANEL_LAYOUTS_KEY, REFRESH_SETTINGS_BROADCAST } from "./constants"
+import {
+  JOURNAL_TO_TODAY_SETTING,
+  PANEL_LAYOUTS_KEY,
+  REFRESH_SETTINGS_BROADCAST,
+} from "./constants"
+
+// 插件设置读取：main.ts 加载时写入插件名
+let settingsPluginName = ""
+
+export function setSettingsPluginName(name: string): void {
+  settingsPluginName = name
+}
 
 export interface SavedLayout {
   activePanel: string
@@ -111,6 +122,31 @@ function findFirstViewPanelId(panel: PanelNode): string | null {
   return null
 }
 
+// 与官方 journalDate(startOfToday()) 一致：本地今天的零点（用 UTC 表示）。
+function todayJournalDate(): Date {
+  const now = new Date()
+  return new Date(Date.UTC(now.getFullYear(), now.getMonth(), now.getDate()))
+}
+
+// 把布局中的日志面板日期替换为今日（只改克隆后的临时对象，不改已保存数据）。
+function setJournalDatesToToday(panel: PanelNode): void {
+  if (isViewPanel(panel)) {
+    if (panel.view === "journal") {
+      panel.viewArgs = { ...panel.viewArgs, date: todayJournalDate() }
+    }
+    return
+  }
+  const container = panel as RowPanel | ColumnPanel
+  for (const child of container.children) {
+    setJournalDatesToToday(child)
+  }
+}
+
+function journalToTodayEnabled(): boolean {
+  const settings = orca.state.plugins[settingsPluginName]?.settings
+  return settings?.[JOURNAL_TO_TODAY_SETTING] !== false
+}
+
 // ---------- 写入（与官方保存布局逻辑一致） ----------
 
 async function writeLayouts(data: PanelLayoutsData): Promise<void> {
@@ -187,6 +223,10 @@ export async function makeDefault(name: string): Promise<void> {
 export function applyLayout(saved: SavedLayout): boolean {
   const idMap = new Map<string, string>()
   const panels = cloneNodeWithFreshIds(saved.panels, idMap) as RowPanel
+  // 布局中若含日志面板，打开时默认改为今日日志（可在插件设置中关闭）
+  if (journalToTodayEnabled()) {
+    setJournalDatesToToday(panels)
+  }
   const activePanelId =
     idMap.get(saved.activePanel) ?? findFirstViewPanelId(panels)
   if (activePanelId == null) return false

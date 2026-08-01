@@ -1,5 +1,7 @@
-import { setupL10N } from "./libs/l10n"
+import { setupL10N, t } from "./libs/l10n"
 import zhCN from "./translations/zhCN"
+import { JOURNAL_TO_TODAY_SETTING } from "./constants"
+import { setSettingsPluginName } from "./layoutOps"
 import {
   injectSidebarLayoutTab,
   removeSidebarLayoutTab,
@@ -11,6 +13,18 @@ export async function load(name: string) {
   pluginName = name
   setupL10N(orca.state.locale, { "zh-CN": zhCN })
 
+  await orca.plugins.setSettingsSchema(pluginName, {
+    [JOURNAL_TO_TODAY_SETTING]: {
+      label: t("Open layouts with today's journal"),
+      description: t(
+        "When a saved layout contains journal panels, applying it replaces the journal date with today. The saved layout data itself is not modified.",
+      ),
+      type: "boolean",
+      defaultValue: true,
+    },
+  })
+  setSettingsPluginName(pluginName)
+
   injectStyles()
   injectSidebarLayoutTab()
 
@@ -20,6 +34,7 @@ export async function load(name: string) {
 export async function unload() {
   removeSidebarLayoutTab()
   removeStyles()
+  setSettingsPluginName("")
 
   console.log(`${pluginName} unloaded.`)
 }
