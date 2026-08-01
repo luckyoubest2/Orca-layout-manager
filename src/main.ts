@@ -5,6 +5,12 @@ import {
   SHOW_GO_DEFAULT_SETTING,
   SHOW_CREATE_LAYOUT_SETTING,
   SHOW_LAYOUT_ACTIONS_SETTING,
+  AUTO_HIDE_SCROLLBARS_SETTING,
+  AUTO_HIDE_PANEL_ACTIONS_SETTING,
+  HIDE_DIVIDERS_SETTING,
+  CARD_PANELS_SETTING,
+  PANEL_RADIUS_SETTING,
+  PANEL_GAP_SETTING,
 } from "./constants"
 import { setSettingsPluginName } from "./layoutOps"
 import {
@@ -19,6 +25,8 @@ import {
 } from "./sidebar"
 
 let pluginName = ""
+let beautifyUnsubscribe: (() => void) | null = null
+let beautifySignature = ""
 
 export async function load(name: string) {
   pluginName = name
@@ -57,12 +65,64 @@ export async function load(name: string) {
       type: "boolean",
       defaultValue: true,
     },
+    [AUTO_HIDE_SCROLLBARS_SETTING]: {
+      label: t("Auto-hide scrollbars"),
+      description: t(
+        "Hide scrollbars by default and only show them while the mouse is hovering over the scrollable area.",
+      ),
+      type: "boolean",
+      defaultValue: true,
+    },
+    [AUTO_HIDE_PANEL_ACTIONS_SETTING]: {
+      label: t("Auto-hide panel action commands"),
+      description: t(
+        "Hide each panel's floating action buttons (e.g. outline, more menu, go buttons) until the mouse hovers over the panel.",
+      ),
+      type: "boolean",
+      defaultValue: true,
+    },
+    [HIDE_DIVIDERS_SETTING]: {
+      label: t("Hide panel divider lines"),
+      description: t(
+        "Remove the solid divider lines between panels.",
+      ),
+      type: "boolean",
+      defaultValue: true,
+    },
+    [CARD_PANELS_SETTING]: {
+      label: t("Card-style panels"),
+      description: t(
+        "Give panels a unified card look with rounded corners, gaps between panels, and spacing to the workspace edges.",
+      ),
+      type: "boolean",
+      defaultValue: true,
+    },
+    [PANEL_RADIUS_SETTING]: {
+      label: t("Panel card radius"),
+      description: t(
+        "Border radius of card-style panels, in px (recommended 10–12).",
+      ),
+      type: "number",
+      defaultValue: 12,
+    },
+    [PANEL_GAP_SETTING]: {
+      label: t("Panel card gap"),
+      description: t(
+        "Gap between card-style panels, in px (recommended 8–12).",
+      ),
+      type: "number",
+      defaultValue: 10,
+    },
   })
   setSettingsPluginName(pluginName)
   setSidebarPluginName(pluginName)
   setHeadbarPluginName(pluginName)
 
   injectStyles()
+  applyGlobalBeautify()
+  beautifyUnsubscribe = window.Valtio.subscribe(orca.state, () =>
+    applyGlobalBeautify(),
+  )
   injectSidebarLayoutTab()
   injectGoDefaultButton()
 
@@ -70,6 +130,11 @@ export async function load(name: string) {
 }
 
 export async function unload() {
+  if (beautifyUnsubscribe != null) {
+    beautifyUnsubscribe()
+    beautifyUnsubscribe = null
+  }
+  removeGlobalBeautify()
   removeSidebarLayoutTab()
   removeGoDefaultButton()
   removeStyles()
@@ -78,6 +143,67 @@ export async function unload() {
   setHeadbarPluginName("")
 
   console.log(`${pluginName} unloaded.`)
+}
+
+// ---------- 全局界面美化（设置驱动） ----------
+
+// 读取插件设置并把对应的美化类/CSS 变量写到 <html> 上。
+// 各选项独立开关，切换设置后立即生效。
+function applyGlobalBeautify(): void {
+  const settings = orca.state.plugins[pluginName]?.settings ?? {}
+  const raw = (key: string): any => settings[key]
+  const sig = [
+    raw(AUTO_HIDE_SCROLLBARS_SETTING),
+    raw(AUTO_HIDE_PANEL_ACTIONS_SETTING),
+    raw(HIDE_DIVIDERS_SETTING),
+    raw(CARD_PANELS_SETTING),
+    raw(PANEL_RADIUS_SETTING),
+    raw(PANEL_GAP_SETTING),
+  ]
+    .map((v) => String(v ?? ""))
+    .join("|")
+  if (sig === beautifySignature) return
+  beautifySignature = sig
+
+  const boolOn = (key: string, def: boolean): boolean => {
+    const v = raw(key)
+    return v === undefined ? def : Boolean(v)
+  }
+  const num = (key: string, def: number): number => {
+    const v = raw(key)
+    const n = typeof v === "number" ? v : parseFloat(String(v))
+    return Number.isFinite(n) ? n : def
+  }
+  const clamp = (n: number, lo: number, hi: number): number =>
+    Math.min(hi, Math.max(lo, n))
+
+  const autoHideScrollbars = boolOn(AUTO_HIDE_SCROLLBARS_SETTING, true)
+  const autoHidePanelActions = boolOn(AUTO_HIDE_PANEL_ACTIONS_SETTING, true)
+  const hideDividers = boolOn(HIDE_DIVIDERS_SETTING, true)
+  const cardPanels = boolOn(CARD_PANELS_SETTING, true)
+  const radius = clamp(num(PANEL_RADIUS_SETTING, 12), 0, 24)
+  const gap = clamp(num(PANEL_GAP_SETTING, 10), 0, 24)
+
+  const root = document.documentElement
+  root.classList.toggle("orca-lm-bs-scroll", autoHideScrollbars)
+  root.classList.toggle("orca-lm-bs-actions", autoHidePanelActions)
+  root.classList.toggle("orca-lm-bs-hide-dividers", hideDividers)
+  root.classList.toggle("orca-lm-bs-cards", cardPanels)
+  root.style.setProperty("--orca-lm-panel-radius", `${radius}px`)
+  root.style.setProperty("--orca-lm-panel-gap", `${gap}px`)
+}
+
+function removeGlobalBeautify(): void {
+  beautifySignature = ""
+  const root = document.documentElement
+  root.classList.remove(
+    "orca-lm-bs-scroll",
+    "orca-lm-bs-actions",
+    "orca-lm-bs-hide-dividers",
+    "orca-lm-bs-cards",
+  )
+  root.style.removeProperty("--orca-lm-panel-radius")
+  root.style.removeProperty("--orca-lm-panel-gap")
 }
 
 function injectStyles() {
@@ -239,6 +365,75 @@ function injectStyles() {
     .orca-lm-overwrite-hint {
       color: var(--orca-color-text-2);
       font-size: var(--orca-fontsize-2xs);
+    }
+
+    /* ---------- 全局界面美化（设置开关控制，默认开启） ---------- */
+
+    /* 1. 自动隐藏滚动条：默认透明，鼠标悬停/键盘聚焦可滚动区域时显示 */
+    .orca-lm-bs-scroll *::-webkit-scrollbar {
+      width: 8px;
+      height: 8px;
+    }
+    .orca-lm-bs-scroll *::-webkit-scrollbar-track {
+      background: transparent;
+    }
+    .orca-lm-bs-scroll *::-webkit-scrollbar-thumb {
+      background-color: transparent !important;
+      border-radius: 999px;
+      border: 2px solid transparent;
+      background-clip: padding-box;
+    }
+    .orca-lm-bs-scroll *:hover::-webkit-scrollbar-thumb,
+    .orca-lm-bs-scroll *:focus-within::-webkit-scrollbar-thumb {
+      background-color: var(--orca-color-win-scrollbar) !important;
+    }
+
+    /* 2. 自动隐藏面板操作命令：鼠标悬停/聚焦面板时显示 */
+    .orca-lm-bs-actions .orca-panel .orca-block-editor-sidetools,
+    .orca-lm-bs-actions .orca-panel .orca-panel-drag-handle,
+    .orca-lm-bs-actions .orca-panel .orca-block-editor-go-btn {
+      opacity: 0;
+      pointer-events: none;
+      transition: opacity 0.15s ease;
+    }
+    .orca-lm-bs-actions .orca-panel:hover .orca-block-editor-sidetools,
+    .orca-lm-bs-actions .orca-panel:hover .orca-panel-drag-handle,
+    .orca-lm-bs-actions .orca-panel:hover .orca-block-editor-go-btn,
+    .orca-lm-bs-actions .orca-panel:focus-within .orca-block-editor-sidetools,
+    .orca-lm-bs-actions .orca-panel:focus-within .orca-panel-drag-handle,
+    .orca-lm-bs-actions .orca-panel:focus-within .orca-block-editor-go-btn {
+      opacity: 1;
+      pointer-events: auto;
+    }
+
+    /* 3. 隐藏面板间纯色分割实线（独立开关） */
+    .orca-lm-bs-hide-dividers
+      .orca-panels-row
+      > :is(.orca-panels-column, .orca-panel):not(:last-child),
+    .orca-lm-bs-hide-dividers
+      .orca-panels-column
+      > :is(.orca-panels-row, .orca-panel):not(:last-child) {
+      border-right: none !important;
+      border-bottom: none !important;
+    }
+
+    /* 4. 卡片化面板：统一圆角 + 面板间缝隙，
+       自带背景色差（容器次级背景/面板主背景）与柔和投影 */
+    /* 容器（#main）四周按同样间距缩进，卡片与工作区边缘留白，
+       避免只有面板之间有空隙而上下边缘贴边造成的割裂感 */
+    .orca-lm-bs-cards .orca-panels-container {
+      background: var(--orca-color-bg-2);
+      padding: var(--orca-lm-panel-gap);
+    }
+    .orca-lm-bs-cards .orca-panels-row,
+    .orca-lm-bs-cards .orca-panels-column {
+      background: var(--orca-color-bg-2);
+      gap: var(--orca-lm-panel-gap);
+    }
+    .orca-lm-bs-cards .orca-panels-container .orca-panel {
+      border-radius: var(--orca-lm-panel-radius);
+      background: var(--orca-color-bg-1);
+      box-shadow: var(--orca-shadow-sidebar);
     }
   `
 

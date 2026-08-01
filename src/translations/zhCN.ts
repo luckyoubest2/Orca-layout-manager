@@ -41,6 +41,24 @@ const zhCN = {
   "Show a quick button to go to the default layout": "显示前往默认布局的快捷按钮",
   "Add a headbar button that applies the default layout. It falls back to today's journal when no default layout is set.":
     "在顶栏添加一个按钮，点击应用默认布局；未设置默认布局时仍回到今日日志。",
+  "Auto-hide scrollbars": "自动隐藏滚动条",
+  "Hide scrollbars by default and only show them while the mouse is hovering over the scrollable area.":
+    "默认隐藏所有滚动条，仅当鼠标悬停到可滚动区域时显示。",
+  "Auto-hide panel action commands": "自动隐藏面板操作命令",
+  "Hide each panel's floating action buttons (e.g. outline, more menu, go buttons) until the mouse hovers over the panel.":
+    "默认隐藏每个面板的浮动操作按钮（如目录、更多菜单、跳转按钮等），鼠标悬停到面板时显示。",
+  "Hide panel divider lines": "隐藏面板分割线",
+  "Remove the solid divider lines between panels.":
+    "移除面板之间的纯色分割实线。",
+  "Card-style panels": "卡片化面板",
+  "Give panels a unified card look with rounded corners, gaps between panels, and spacing to the workspace edges.":
+    "面板采用统一卡片样式，带圆角、面板间缝隙与工作区边缘留白。",
+  "Panel card radius": "面板圆角",
+  "Border radius of card-style panels, in px (recommended 10–12).":
+    "卡片化面板的圆角半径（像素），建议 10–12。",
+  "Panel card gap": "面板间距",
+  "Gap between card-style panels, in px (recommended 8–12).":
+    "卡片化面板之间的缝隙宽度（像素），建议 8–12。",
 }
 
 export default zhCN

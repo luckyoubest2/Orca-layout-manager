@@ -14,3 +14,21 @@ export const SHOW_LAYOUT_ACTIONS_SETTING = "showLayoutActions"
 
 // 插件设置键：是否显示顶栏「前往默认布局」快捷按钮
 export const SHOW_GO_DEFAULT_SETTING = "showGoDefaultButton"
+
+// 插件设置键：是否自动隐藏滚动条（鼠标靠近时显示）
+export const AUTO_HIDE_SCROLLBARS_SETTING = "beautifyAutoHideScrollbars"
+
+// 插件设置键：是否自动隐藏面板操作命令（鼠标悬停面板时显示）
+export const AUTO_HIDE_PANEL_ACTIONS_SETTING = "beautifyAutoHidePanelActions"
+
+// 插件设置键：是否隐藏面板间的分割实线
+export const HIDE_DIVIDERS_SETTING = "beautifyHideDividers"
+
+// 插件设置键：是否启用卡片化面板
+export const CARD_PANELS_SETTING = "beautifyCardPanels"
+
+// 插件设置键：卡片化面板的圆角（像素）
+export const PANEL_RADIUS_SETTING = "beautifyPanelRadius"
+
+// 插件设置键：卡片化面板之间的间距（像素）
+export const PANEL_GAP_SETTING = "beautifyPanelGap"
