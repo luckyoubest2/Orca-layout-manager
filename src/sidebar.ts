@@ -25,6 +25,7 @@ let contentContainer: HTMLElement | null = null
 // 表单/交互状态（纯 DOM 实现，保存于模块级）
 let newName = ""
 let confirmingDelete: string | null = null
+let confirmingUpdate: string | null = null
 let confirmingOverwrite: string | null = null
 let busy = false
 let lastSignature = ""
@@ -331,11 +332,26 @@ function buildLayoutRow(name: string, isDefault: boolean): HTMLElement {
       refreshList()
     })
     actions.append(hint, ok, cancel)
+  } else if (confirmingUpdate === name) {
+    const hint = document.createElement("span")
+    hint.className = "orca-lm-overwrite-hint"
+    hint.textContent = t('Overwrite the layout "${name}"?', { name })
+    const ok = makeButton("ti ti-check", t("Confirm"), () => {
+      confirmingUpdate = null
+      refreshList()
+      void doUpdate(name)
+    })
+    const cancel = makeButton("ti ti-x", t("Cancel"), () => {
+      confirmingUpdate = null
+      refreshList()
+    })
+    actions.append(hint, ok, cancel)
   } else {
     actions.append(
-      makeButton("ti ti-device-floppy", t("Update layout"), () =>
-        void doUpdate(name),
-      ),
+      makeButton("ti ti-device-floppy", t("Update layout"), () => {
+        confirmingUpdate = name
+        refreshList()
+      }),
       makeButton("ti ti-star", t("Make default"), () => void doMakeDefault(name), {
         disabled: isDefault,
       }),

@@ -206,6 +206,10 @@ function injectStyles() {
       color: var(--orca-color-dangerous-5);
       font-size: var(--orca-fontsize-2xs);
     }
+    .orca-lm-overwrite-hint {
+      color: var(--orca-color-text-2);
+      font-size: var(--orca-fontsize-2xs);
+    }
   `
 
   const styleEl = document.createElement("style")
