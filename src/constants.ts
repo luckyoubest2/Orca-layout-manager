@@ -11,3 +11,6 @@ export const SHOW_CREATE_LAYOUT_SETTING = "showCreateLayout"
 
 // 插件设置键：是否显示每个布局行的 保存/默认/删除 操作按钮
 export const SHOW_LAYOUT_ACTIONS_SETTING = "showLayoutActions"
+
+// 插件设置键：是否把顶栏「前往今日日志」按钮替换为「前往默认布局」
+export const REPLACE_GO_TODAY_SETTING = "replaceGoTodayWithDefaultLayout"

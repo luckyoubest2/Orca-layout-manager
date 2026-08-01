@@ -2,10 +2,16 @@ import { setupL10N, t } from "./libs/l10n"
 import zhCN from "./translations/zhCN"
 import {
   JOURNAL_TO_TODAY_SETTING,
+  REPLACE_GO_TODAY_SETTING,
   SHOW_CREATE_LAYOUT_SETTING,
   SHOW_LAYOUT_ACTIONS_SETTING,
 } from "./constants"
 import { setSettingsPluginName } from "./layoutOps"
+import {
+  injectGoDefaultButton,
+  removeGoDefaultButton,
+  setHeadbarPluginName,
+} from "./headbar"
 import {
   injectSidebarLayoutTab,
   removeSidebarLayoutTab,
@@ -43,21 +49,35 @@ export async function load(name: string) {
       type: "boolean",
       defaultValue: true,
     },
+    [REPLACE_GO_TODAY_SETTING]: {
+      label: t(
+        'Replace "Go to today\'s journal" with "Go to the default layout"',
+      ),
+      description: t(
+        "Replace the headbar home button so it applies the default layout. It falls back to today's journal when no default layout is set.",
+      ),
+      type: "boolean",
+      defaultValue: true,
+    },
   })
   setSettingsPluginName(pluginName)
   setSidebarPluginName(pluginName)
+  setHeadbarPluginName(pluginName)
 
   injectStyles()
   injectSidebarLayoutTab()
+  injectGoDefaultButton()
 
   console.log(`${pluginName} loaded.`)
 }
 
 export async function unload() {
   removeSidebarLayoutTab()
+  removeGoDefaultButton()
   removeStyles()
   setSettingsPluginName("")
   setSidebarPluginName("")
+  setHeadbarPluginName("")
 
   console.log(`${pluginName} unloaded.`)
 }

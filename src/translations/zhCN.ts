@@ -40,6 +40,10 @@ const zhCN = {
   "Show layout row actions": "显示布局行操作按钮",
   "Show the save/default/delete buttons on each saved layout row. Turn it off to collapse these buttons; clicking the layout name still applies it.":
     "显示每个已保存布局行的保存/默认/删除按钮；关闭后折叠这些按钮，点击布局名称仍可应用。",
+  "Replace \"Go to today's journal\" with \"Go to the default layout\"":
+    "将顶栏「前往今日日志」按钮替换为「前往默认布局」",
+  "Replace the headbar home button so it applies the default layout. It falls back to today's journal when no default layout is set.":
+    "顶栏主页按钮改为应用默认布局；未设置默认布局时仍回到今日日志。",
 }
 
 export default zhCN
